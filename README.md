@@ -1,12 +1,14 @@
 # 🔢 Handwritten Digit Recognition Using Deep Learning
 
-A machine learning project that classifies handwritten digits (0–9) by training and benchmarking three classification algorithms — **MLP Neural Network**, **Support Vector Machine (SVM)**, and **K-Nearest Neighbours (KNN)** — on the MNIST-style digit dataset.
+A deep learning project that classifies handwritten digits (0–9) by training and benchmarking four models — **CNN**, **MLP Neural Network**, **Support Vector Machine (SVM)**, and **K-Nearest Neighbours (KNN)** — on the full MNIST dataset (70,000 samples). Includes a live interactive web app for real-time digit prediction.
+
+🚀 **[Live Demo → handwritten-digit-recognition--nishantraj04.streamlit.app](https://handwritten-digit-recognition--nishantraj04.streamlit.app)**
 
 ---
 
 ## 📌 Objective
 
-To automate the recognition of handwritten digits using supervised machine learning, eliminating the inefficiency of manual digit identification through a comparative multi-model approach.
+To automate the recognition of handwritten digits using deep learning and classical ML, and to conduct a comparative analysis of model accuracy, training time, and scalability across architectures.
 
 ---
 
@@ -16,11 +18,17 @@ To automate the recognition of handwritten digits using supervised machine learn
 Handwritten-Digit-Recognition/
 │
 ├── digit_recognition.py       # Main script — data loading, training, evaluation, plots
-├── sample_digits.png          # Grid of sample digits (0–9) from the dataset
-├── confusion_matrices.png     # Confusion matrices for all 3 models
+├── app.py                     # Streamlit web app for real-time digit prediction
+├── cnn_model.h5               # Saved CNN model (trained on full MNIST 60k)
+├── requirements.txt           # Python dependencies for deployment
+├── .python-version            # Pins Python 3.11 for TensorFlow compatibility
+│
+├── sample_digits.png          # Grid of MNIST sample digits (0–9)
+├── confusion_matrices.png     # Side-by-side confusion matrices for all 4 models
 ├── model_comparison.png       # Accuracy & training time comparison bar charts
-├── mlp_loss_curve.png         # MLP training loss curve across epochs
-├── mlp_predictions.png        # Sample MLP predictions (correct vs incorrect)
+├── cnn_training_history.png   # CNN accuracy & loss curves across 5 epochs
+├── cnn_predictions.png        # CNN sample predictions (correct vs incorrect)
+│
 └── README.md
 ```
 
@@ -28,42 +36,46 @@ Handwritten-Digit-Recognition/
 
 ## 🧠 Models Used
 
-| Model | Description |
-|---|---|
-| **MLP Neural Network** | 3-layer fully connected network (256 → 128 → 64), ReLU activation, Adam optimizer |
-| **SVM** | Support Vector Machine with RBF kernel, C=10, gamma='scale' |
-| **KNN** | K-Nearest Neighbours with k=5, Euclidean distance metric |
+| Model | Architecture | Dataset Used |
+|---|---|---|
+| **CNN** | Conv2D(32) → MaxPool → Conv2D(64) → MaxPool → Dense(128) → Dropout(0.3) → Softmax | Full 60k |
+| **MLP** | 3-layer fully connected (256 → 128 → 64), ReLU, Adam optimizer | Full 60k |
+| **SVM** | RBF kernel, C=10, gamma='scale' | 15k stratified subset |
+| **KNN** | k=5, Euclidean distance | 15k stratified subset |
+
+> SVM and KNN use a 15k stratified subset — RBF-SVM is O(n²/n³) and becomes impractical on 60k samples.
 
 ---
 
 ## 📊 Results
 
-| Model | Accuracy | Training Time |
-|---|---|---|
-| MLP Neural Network | 98.06% | 4.0s |
-| **SVM (Best)** | **98.89%** | 0.1s |
-| KNN | 97.78% | ~0.0s |
+| Model | Test Accuracy | Training Time | Dataset |
+|---|---|---|---|
+| **CNN** | **99.01%** 🥇 | 28.9s | Full 60k |
+| MLP | 97.49% | 226.8s | Full 60k |
+| SVM | 95.46% | 28.8s | 15k subset |
+| KNN | 95.27% | ~0.0s | 15k subset |
 
-> ✅ **SVM achieved the highest accuracy of 98.89%** on the test set.
+> Test set: 10,000 samples from the official MNIST test split.
 
 ---
 
 ## 📈 Visualisations
 
-### Sample Digits
+### Sample MNIST Digits (0–9)
 ![Sample Digits](sample_digits.png)
 
-### Confusion Matrices
+### Confusion Matrices — All 4 Models
 ![Confusion Matrices](confusion_matrices.png)
 
-### Model Comparison
+### Model Accuracy & Training Time Comparison
 ![Model Comparison](model_comparison.png)
 
-### MLP Loss Curve
-![MLP Loss Curve](mlp_loss_curve.png)
+### CNN Training History (Accuracy & Loss per Epoch)
+![CNN Training History](cnn_training_history.png)
 
-### MLP Predictions
-![MLP Predictions](mlp_predictions.png)
+### CNN Sample Predictions
+![CNN Predictions](cnn_predictions.png)
 
 ---
 
@@ -71,16 +83,19 @@ Handwritten-Digit-Recognition/
 
 | Category | Tools |
 |---|---|
-| Language | Python 3.x |
-| ML Models | `scikit-learn` (MLPClassifier, SVC, KNeighborsClassifier) |
-| Data Processing | `NumPy`, `scikit-learn` (StandardScaler, train_test_split) |
-| Image Processing | `scikit-image` (resize 8×8 → 28×28) |
+| Language | Python 3.11 |
+| Deep Learning | `TensorFlow 2.21` / `Keras` (CNN) |
+| Classical ML | `scikit-learn` (MLP, SVM, KNN) |
+| Data Processing | `NumPy`, StandardScaler, stratified train/test split |
 | Visualisation | `Matplotlib` |
-| Dataset | sklearn `load_digits` (MNIST-style, 1,797 samples, 10 classes) |
+| Web App | `Streamlit`, `streamlit-drawable-canvas` |
+| Dataset | MNIST via `tensorflow.keras.datasets` (70,000 samples, 28×28 grayscale) |
 
 ---
 
 ## ⚙️ Installation & Setup
+
+> Requires **Python 3.11** — TensorFlow 2.x does not support Python 3.12+
 
 ### 1. Clone the repository
 ```bash
@@ -90,12 +105,17 @@ cd Handwritten-Digit-Recognition
 
 ### 2. Install dependencies
 ```bash
-pip install scikit-learn matplotlib numpy scikit-image
+pip install tensorflow==2.21.0 scikit-learn matplotlib numpy Pillow streamlit streamlit-drawable-canvas
 ```
 
-### 3. Run the project
+### 3. Train all models and generate plots
 ```bash
 python digit_recognition.py
+```
+
+### 4. Run the web app locally
+```bash
+streamlit run app.py
 ```
 
 ---
@@ -103,53 +123,67 @@ python digit_recognition.py
 ## 🔄 Pipeline Overview
 
 ```
-Load Dataset (sklearn digits)
-        ↓
-Preprocess (Normalise + Resize to 28×28)
-        ↓
-Train/Test Split (80% / 20%, stratified)
-        ↓
-Feature Scaling (StandardScaler for MLP & SVM)
-        ↓
-Train Models: MLP | SVM | KNN
-        ↓
-Evaluate: Accuracy, Precision, Recall, F1-score
-        ↓
-Visualise: Confusion Matrix, Loss Curve, Predictions
+Load MNIST Dataset (70,000 samples, 28×28 grayscale)
+                ↓
+Preprocess — Normalise pixels to [0,1], reshape for CNN (28×28×1)
+                ↓
+Stratified Train/Test Split (60k train / 10k test)
+                ↓
+Feature Scaling — StandardScaler for MLP & SVM
+                ↓
+        Train 4 Models in parallel
+   CNN  |   MLP   |   SVM   |   KNN
+                ↓
+Evaluate — Accuracy, Precision, Recall, F1-score, Confusion Matrix
+                ↓
+Visualise — Training curves, model comparison, sample predictions
+                ↓
+Deploy — Streamlit web app with MNIST-style preprocessing for live inference
 ```
 
 ---
 
-## 📋 Classification Report Summary (Test Set — 360 samples)
+## 📋 Classification Report Summary (Test Set — 10,000 samples)
 
-### MLP — 98.06%
-- All digits achieved F1-score ≥ 0.93
-- Digit 1 and 8 were the most challenging (F1: 0.93)
+### CNN — 99.01%
+- Achieved F1-score of 0.99 across all 10 digit classes
+- Best overall model with the highest precision and recall consistency
 
-### SVM — 98.89%
-- Most consistent across all digit classes
-- Digit 1 and 5 had the lowest F1 at 0.97
+### MLP — 97.49%
+- All digits achieved F1-score ≥ 0.96
+- Longest training time (226.8s) due to full 60k dataset with 30 epochs
 
-### KNN — 97.78%
-- Digit 8 was the hardest to classify (F1: 0.91)
-- Zero training time (lazy learner)
+### SVM — 95.46%
+- Digit 2 had the lowest F1 (0.93) — commonly confused with 3
+- Strong for a classical model on a 15k subset
+
+### KNN — 95.27%
+- Zero training time (lazy learner — all computation at inference)
+- Digit 8 was hardest to classify (F1: 0.94)
+
+---
+
+## 🖥️ Web App
+
+The Streamlit app allows users to draw any digit (0–9) on a canvas and receive real-time predictions from the CNN model.
+
+**Preprocessing pipeline (MNIST-style):**
+1. Capture canvas drawing (280×280)
+2. Find bounding box of drawn digit
+3. Crop, pad, and center the digit
+4. Resize to 28×28 (MNIST resolution)
+5. Normalise to [0,1] and run CNN inference
+
+🚀 **[Try it live → handwritten-digit-recognition--nishantraj04.streamlit.app](https://handwritten-digit-recognition--nishantraj04.streamlit.app)**
 
 ---
 
 ## 💡 Key Takeaways
 
-- **SVM** delivered the best accuracy with very low training time, making it ideal for small-to-medium image classification tasks.
-- **MLP** is more scalable and would outperform SVM on the full 70,000-sample MNIST dataset with a deeper architecture.
-- **KNN** requires no training but is computationally expensive at inference time as dataset size grows.
-
----
-
-## 🚀 Future Improvements
-
-- Train on the full MNIST dataset (70,000 samples)
-- Implement a **Convolutional Neural Network (CNN)** using TensorFlow/Keras for higher accuracy
-- Build a **real-time digit drawing interface** using OpenCV or Tkinter
-- Deploy as a **web app** using Flask or Streamlit
+- **CNN** is the clear winner for image classification — spatial feature extraction via Conv2D layers gives it a decisive edge over flat MLP inputs.
+- **MLP** on full 60k is competitive but slower; benefits from large data but lacks spatial awareness.
+- **SVM** achieves strong results on a 15k subset but doesn't scale well to 60k due to O(n²) complexity of RBF kernel.
+- **KNN** has zero training time but is a lazy learner — all compute shifts to inference, making it slow at scale.
 
 ---
 
@@ -157,3 +191,4 @@ Visualise: Confusion Matrix, Loss Curve, Predictions
 
 **Nishant Raj**
 - GitHub: [@nishantraj04](https://github.com/nishantraj04)
+- Institution: ITER, SOA University — B.Tech CSE (2023–2027)
